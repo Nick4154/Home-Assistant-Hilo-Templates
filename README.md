@@ -2,7 +2,7 @@
 Collection de templates et automations pour Home Assistant et Hilo. Inspiré de [https://github.com/dvd-dev/hilo](https://github.com/dvd-dev/hilo)
 
 ## Prérequis Lovelace
-- [lovelace-mushroom](https://github.com/piitaya/lovelace-mushroom) [HACS nécessaire](https://hacs.xyz/)
+- [lovelace-mushroom](https://github.com/piitaya/lovelace-mushroom) ([HACS nécessaire](https://hacs.xyz/))
 - [hilo par dvd-dev](https://github.com/dvd-dev/hilo)
 
 - Une entité doit être créée (input_select.hvac_mode) avec 3 différentes options:
