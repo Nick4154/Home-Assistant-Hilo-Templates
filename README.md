@@ -13,7 +13,7 @@ Collection de templates et automations pour Home Assistant et Hilo. Inspiré de 
 Je me sert de cette entité pour allumer/éteindre le chauffage, l'air climatisé, ainsi que désactiver les automations pour entrée/sorties de zones pendant les défis Hilo.
 
 ## Cartes Lovelace
-Voici les différentes cartes que j'ai créé. Un template complet pour la page est disponible sur (Insert Link!!!!!)
+Voici les différentes cartes que j'ai créé. Un template complet pour la page est disponible sur ([lovelace-hilo.yaml](https://github.com/Nick4154/Home-Assistant-Hilo-Templates/blob/main/lovelace-hilo.yaml))
 
 __Attention__: Toutes mes cartes utilisent des conditions pour l'affichage, selon l'état des défis et d'autres entités personnalisées. Libre à vous d'enlever les conditions mais les cartes risquent de mal fonctionner.
 J'ai laissé les conditions sur place pour donner une idée de comment elles sont affichées. Je vais aussi laisser les différentes automations que j'utilisent pour les défis Hilo éventuellement, car elles sont très 
