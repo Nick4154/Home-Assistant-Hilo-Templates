@@ -1,0 +1,624 @@
+#######################################################################################################
+#                                                 Attention !!!!!!!                                   #
+# Ceci est le template "RAW" de ma page Lovelace, sans aucune modification, incluant les thermostats. #
+# Simplement copy/paste ce code risque de ne pas fonctionner dû à plusieurs entitées personnalisées   #
+# que j'ai créé pour gérer le système HVAC de la maison. SVP lire attentivement le code (surtout les  #
+# sections "visibility" pour comprendre quelle cartes affichent quand!                                #
+#######################################################################################################
+  
+  - title: Climate
+    icon: mdi:home-thermometer
+    badges: []
+    cards: []
+    type: sections
+    sections:
+      - type: grid
+        cards:
+          - type: custom:mushroom-template-card
+            primary: >-
+              {% if states('input_select.hvac_mode') == 'hiver'%}Mode de
+              chauffage{% endif %}
+
+              {% if states('input_select.hvac_mode') == 'ete'%}Mode de
+              ventilation{% endif %}
+
+              {% if states('input_select.hvac_mode') ==
+              'defi-hilo-en-cours'%}Mode de chauffage{% endif %}
+            secondary: >-
+              {% if states('input_select.hvac_mode') == 'hiver'%}Hiver{% endif
+              %}
+
+              {% if states('input_select.hvac_mode') == 'ete'%}Été{% endif %}
+
+              {% if states('input_select.hvac_mode') ==
+              'defi-hilo-en-cours'%}Défi Hilo{% endif %}
+            icon: mdi:home-thermometer
+            fill_container: false
+            layout: horizontal
+            icon_color: >-
+              {% if states('input_select.hvac_mode') == 'hiver'%}blue{% endif %}
+
+              {% if states('input_select.hvac_mode') == 'ete'%}green{% endif %}
+
+              {% if states('input_select.hvac_mode') ==
+              'defi-hilo-en-cours'%}purple{% endif %}
+          - type: markdown
+            content: >
+
+              # Défi Hilo #{{ state_attr('sensor.defi_hilo',
+              'next_events')[0]['event_id'] }}
+            visibility:
+              - condition: or
+                conditions:
+                  - condition: state
+                    entity: sensor.defi_hilo
+                    state: scheduled
+                  - condition: state
+                    entity: sensor.defi_hilo
+                    state: appreciation
+                  - condition: state
+                    entity: sensor.defi_hilo
+                    state: pre_heat
+                  - condition: state
+                    entity: sensor.defi_hilo
+                    state: reduction
+                  - condition: state
+                    entity: sensor.defi_hilo
+                    state: recovery
+          - type: custom:mushroom-template-card
+            primary: Date limite pour participer
+            secondary: >
+              {% set next_event = state_attr('sensor.defi_hilo',
+              'next_events')[0] %}
+
+              {% set phases = next_event['phases'] %}
+
+              {% set date_now = now().timestamp() %}
+
+              {% set preheat_start = as_timestamp(phases['preheat_start']) %}
+
+
+              {% if as_timestamp(state_attr('sensor.defi_hilo',
+              'next_events')[0]['phases']['settings_deadline']) ==
+              as_timestamp(states('sensor.date')) %}aujourd'hui à
+
+              {% else %}
+
+              demain à
+
+              {% endif %}
+
+              {{ preheat_start | timestamp_custom('%Hh') }}
+            icon: ''
+            visibility:
+              - condition: or
+                conditions:
+                  - condition: state
+                    entity: sensor.defi_hilo
+                    state: scheduled
+          - type: tile
+            entity: input_boolean.defi_hilo_participation
+            name: Participer au défi?
+            visibility:
+              - condition: or
+                conditions:
+                  - condition: state
+                    entity: sensor.defi_hilo
+                    state: scheduled
+          - type: custom:mushroom-template-card
+            primary: Phase en cours
+            secondary: >-
+              {% set next_event = state_attr('sensor.defi_hilo',
+              'next_events')[0] %}
+
+              {% set phases = next_event['phases'] %}
+
+              {% set date_now = now().timestamp() %}
+
+              {% set reduction_start = as_timestamp(phases['reduction_start'])
+              %}
+
+              {% set appreciation_start = as_timestamp(phases['preheat_start'])
+              - (3 * 3600) %}
+
+              {% set preheat_start = as_timestamp(phases['preheat_start']) %}
+
+              {% set recovery_start = as_timestamp(phases['recovery_start']) %}
+
+              {% set recovery_end = as_timestamp(phases['recovery_end']) %}
+
+              {% set deadline = as_timestamp(phases['settings_deadline']) %}
+
+
+              {% if date_now >= appreciation_start and date_now <= preheat_start
+              %}
+                Appréciation jusqu'à {{ preheat_start | timestamp_custom ('%Hh') }}
+              {% elif date_now <= appreciation_start %}
+                Programmé pour {{ appreciation_start | timestamp_custom('%Hh') }} (Appréciation)
+              {% elif date_now >= preheat_start and date_now <= reduction_start
+              %}
+                Préchauffage jusqu'à {{ reduction_start | timestamp_custom('%Hh') }}
+              {% elif date_now >= reduction_start and date_now <= recovery_start
+              %}
+                Réduction jusqu'à {{ recovery_start | timestamp_custom('%Hh') }}
+              {% elif date_now >= recovery_start and date_now <= recovery_end %}
+                Reprise jusqu'à {{ recovery_end | timestamp_custom('%Hh') }}
+              {% endif %}
+            icon: mdi:thermometer-chevron-down
+            fill_container: false
+            layout: horizontal
+            icon_color: >-
+              {% set next_event = state_attr('sensor.defi_hilo',
+              'next_events')[0] %}
+
+              {% set phases = next_event['phases'] %}
+
+              {% set date_now = now().timestamp() %}
+
+              {% set reduction_start = as_timestamp(phases['reduction_start'])
+              %}
+
+              {% set appreciation_start = as_timestamp(phases['preheat_start'])
+              - (3 * 3600) %}
+
+              {% set preheat_start = as_timestamp(phases['preheat_start']) %}
+
+              {% set recovery_start = as_timestamp(phases['recovery_start']) %}
+
+              {% set recovery_end = as_timestamp(phases['recovery_end']) %}
+
+              {% set deadline = as_timestamp(phases['settings_deadline']) %}
+
+
+              {% if date_now >= appreciation_start and date_now <= preheat_start
+              %}
+                yellow
+              {% elif date_now <= appreciation_start %}
+                grey
+              {% elif date_now >= preheat_start and date_now <= reduction_start
+              %}
+                orange
+              {% elif date_now >= reduction_start and date_now <= recovery_start
+              %}
+                blue
+              {% elif date_now >= recovery_start and date_now <= recovery_end %}
+                green
+              {% endif %}
+            grid_options:
+              rows: 1
+              columns: 12
+            visibility:
+              - condition: or
+                conditions:
+                  - condition: and
+                    conditions:
+                      - condition: state
+                        entity: input_boolean.defi_hilo_participation
+                        state: scheduled
+                      - condition: state
+                        entity: input_select.hvac_mode
+                        state: defi-hilo-en-cours
+                  - condition: state
+                    entity: sensor.defi_hilo
+                    state: recovery
+          - type: custom:mushroom-template-card
+            primary: Phase en cours
+            secondary: >-
+              {% set next_event = state_attr('sensor.defi_hilo',
+              'next_events')[0] %}
+
+              {% set phases = next_event['phases'] %}
+
+              {% set date_now = now().timestamp() %}
+
+              {% set reduction_start = as_timestamp(phases['reduction_start'])
+              %}
+
+              {% set appreciation_start = as_timestamp(phases['preheat_start'])
+              - (3 * 3600) %}
+
+              {% set preheat_start = as_timestamp(phases['preheat_start']) %}
+
+              {% set recovery_start = as_timestamp(phases['recovery_start']) %}
+
+              {% set recovery_end = as_timestamp(phases['recovery_end']) %}
+
+              {% set deadline = as_timestamp(phases['settings_deadline']) %}
+
+
+              {% if date_now >= appreciation_start and date_now <= preheat_start
+              %}
+                Appréciation jusqu'à {{ preheat_start | timestamp_custom ('%Hh') }}
+              {% elif date_now <= appreciation_start %}
+                Programmé pour {{ appreciation_start | timestamp_custom('%Hh') }} (Appréciation)
+              {% elif date_now >= preheat_start and date_now <= reduction_start
+              %}
+                Préchauffage jusqu'à {{ reduction_start | timestamp_custom('%Hh') }}
+              {% elif date_now >= reduction_start and date_now <= recovery_start
+              %}
+                Réduction jusqu'à {{ recovery_start | timestamp_custom('%Hh') }}
+              {% elif date_now >= recovery_start and date_now <= recovery_end %}
+                Reprise jusqu'à {{ recovery_end | timestamp_custom('%Hh') }}
+              {% endif %}
+            icon: mdi:thermometer-chevron-down
+            fill_container: false
+            layout: horizontal
+            icon_color: >-
+              {% set next_event = state_attr('sensor.defi_hilo',
+              'next_events')[0] %}
+
+              {% set phases = next_event['phases'] %}
+
+              {% set date_now = now().timestamp() %}
+
+              {% set reduction_start = as_timestamp(phases['reduction_start'])
+              %}
+
+              {% set appreciation_start = as_timestamp(phases['preheat_start'])
+              - (3 * 3600) %}
+
+              {% set preheat_start = as_timestamp(phases['preheat_start']) %}
+
+              {% set recovery_start = as_timestamp(phases['recovery_start']) %}
+
+              {% set recovery_end = as_timestamp(phases['recovery_end']) %}
+
+              {% set deadline = as_timestamp(phases['settings_deadline']) %}
+
+
+              {% if date_now >= appreciation_start and date_now <= preheat_start
+              %}
+                yellow
+              {% elif date_now <= appreciation_start %}
+                grey
+              {% elif date_now >= preheat_start and date_now <= reduction_start
+              %}
+                orange
+              {% elif date_now >= reduction_start and date_now <= recovery_start
+              %}
+                blue
+              {% elif date_now >= recovery_start and date_now <= recovery_end %}
+                green
+              {% endif %}
+            grid_options:
+              rows: 1
+              columns: 9
+            visibility:
+              - condition: state
+                entity: input_select.hvac_mode
+                state: defi-hilo-en-cours
+          - type: custom:mushroom-template-card
+            primary: Temp. Ext.
+            secondary: >-
+              {{ state_attr('weather.forecast_home', 'temperature') | float |
+              round(0, "ceil", default) }}{{ state_attr('weather.forecast_home',
+              'temperature_unit') }}
+            icon: |-
+              {% if states('weather.forecast_home') == 'partlycloudy' %}
+              mdi:weather-partly-cloudy
+              {% elif states('weather.forecast_home') == 'cleat-night' %}
+              mdi:weather-night
+              {% elif states('weather.forecast_home') == 'cloudy' %}
+              mdi:weather-cloudy
+              {% elif states('weather.forecast_home') == 'fog' %}
+              mdi:weather-fog
+              {% elif states('weather.forecast_home') == 'lightning' %}
+              mdi:weather-lightning
+              {% elif states('weather.forecast_home') == 'lightning-rainy' %}
+              mdi:weather-lightning-rainy
+              {% elif states('weather.forecast_home') == 'pouring' %}
+              mdi:weather-pouring
+              {% elif states('weather.forecast_home') == 'rainy' %}
+              mdi:weather-rainy
+              {% elif states('weather.forecast_home') == 'hail' %}
+              mdi:weather-hail
+              {% elif states('weather.forecast_home') == 'snowy' %}
+              mdi:weather-snowy
+              {% elif states('weather.forecast_home') == 'snowy-rainy' %}
+              mdi:weather-snowy-rainy
+              {% elif states('weather.forecast_home') == 'sunny' %}
+              mdi:weather-sunny
+              {% elif states('weather.forecast_home') == 'windy' %}
+              mdi:weather-windy
+              {% elif states('weather.forecast_home') == 'windy-variant' %}
+              mdi:weather-windy-variant
+              {% endif %}
+            layout: vertical
+            grid_options:
+              columns: 3
+              rows: 2
+            visibility:
+              - condition: state
+                entity: input_select.hvac_mode
+                state: defi-hilo-en-cours
+          - type: custom:mushroom-template-card
+            primary: Consommation actuelle
+            secondary: >-
+              {{ (states('sensor.meter00_power') | int / 1000) | round(1,
+              "ceil", default)}} kW
+            icon: mdi:meter-electric
+            icon_color: >-
+              {% if states('sensor.meter00_power') | int < 1000 %}
+
+              green
+
+              {% elif states('sensor.meter00_power') | float >= 1000 and
+              states('sensor.meter00_power') | float < 2000 %}
+
+              yellow
+
+              {% elif states('sensor.meter00_power') | float >= 2000 and
+              states('sensor.meter00_power') | float < 3500%}
+
+              orange
+
+              {% elif states('sensor.meter00_power') | int >= 3500 %}
+
+              red
+
+              {% endif %}
+            grid_options:
+              columns: 9
+              rows: 1
+            fill_container: false
+            multiline_secondary: false
+            tap_action:
+              action: more-info
+            entity: sensor.meter00_power
+            visibility:
+              - condition: state
+                entity: input_select.hvac_mode
+                state: defi-hilo-en-cours
+          - type: custom:mushroom-template-card
+            primary: Récompense
+            secondary: >-
+              {{(( state_attr('sensor.defi_hilo',
+              'next_events')[0]['allowed_kWh'] - state_attr('sensor.defi_hilo',
+              'next_events')[0]['used_kWh']) * 0.55) | round(2) }} $
+            icon: mdi:cash
+            grid_options:
+              columns: 5
+              rows: 1
+            visibility:
+              - condition: or
+                conditions:
+                  - condition: state
+                    entity: sensor.defi_hilo
+                    state: reduction
+                  - condition: state
+                    entity: sensor.defi_hilo
+                    state: recovery
+              - condition: state
+                entity: input_boolean.defi_hilo_participation
+                state: 'on'
+            icon_color: green
+          - type: custom:mushroom-template-card
+            primary: Consommation défi
+            secondary: >-
+              {{ state_attr('sensor.defi_hilo',
+              'next_events')[0]['used_percentage']}}% -  
+
+              {{ state_attr('sensor.defi_hilo',
+              'next_events')[0]['used_kWh']}}/{{ state_attr('sensor.defi_hilo',
+              'next_events')[0]['allowed_kWh']}} kWh
+            icon: mdi:lightning-bolt
+            icon_color: >-
+              {% if state_attr('sensor.defi_hilo',
+              'next_events')[0]['used_percentage'] < 20 %}
+
+              green
+
+              {% elif state_attr('sensor.defi_hilo',
+              'next_events')[0]['used_percentage'] <= 20 and
+              state_attr('sensor.defi_hilo',
+              'next_events')[0]['used_percentage'] < 30 %}
+
+              yellow
+
+              {% elif state_attr('sensor.defi_hilo',
+              'next_events')[0]['used_percentage'] <= 30 and
+              state_attr('sensor.defi_hilo',
+              'next_events')[0]['used_percentage'] < 40 %}
+
+              orange
+
+              {% elif state_attr('sensor.defi_hilo',
+              'next_events')[0]['used_percentage'] <= 50 %}
+
+              red
+
+              {% endif %}
+            grid_options:
+              columns: 7
+              rows: 1
+            visibility:
+              - condition: or
+                conditions:
+                  - condition: state
+                    entity: sensor.defi_hilo
+                    state: reduction
+                  - condition: state
+                    entity: sensor.defi_hilo
+                    state: recovery
+              - condition: state
+                entity: input_boolean.defi_hilo_participation
+                state: 'on'
+      - type: grid
+        cards:
+          - type: custom:mushroom-climate-card
+            fill_container: false
+            layout: horizontal
+            primary_info: name
+            hvac_modes:
+              - auto
+              - 'off'
+            show_temperature_control: true
+            collapsible_controls: true
+            icon: mdi:snowflake
+            entity: climate.irremotelivingroom_kitchen_a_c_2
+            name: A/C Cuisine
+            visibility:
+              - condition: state
+                entity: input_select.hvac_mode
+                state: ete
+          - type: custom:mushroom-climate-card
+            entity: climate.thermostat_entree
+            fill_container: false
+            layout: horizontal
+            hvac_modes: []
+            show_temperature_control: true
+            collapsible_controls: true
+            secondary_info: state
+            icon: mdi:heat-wave
+            name: Entrée
+            tap_action:
+              action: more-info
+            visibility:
+              - condition: state
+                entity: input_select.hvac_mode
+                state_not: ete
+          - type: custom:mushroom-climate-card
+            entity: climate.thermostat_cuisine
+            fill_container: false
+            layout: horizontal
+            primary_info: name
+            hvac_modes: []
+            show_temperature_control: true
+            collapsible_controls: true
+            icon: mdi:heat-wave
+            name: Cuisine
+            tap_action:
+              action: more-info
+            visibility:
+              - condition: state
+                entity: input_select.hvac_mode
+                state_not: ete
+          - type: custom:mushroom-climate-card
+            entity: climate.thermostat_salle_de_bain
+            fill_container: false
+            layout: horizontal
+            primary_info: name
+            hvac_modes: []
+            show_temperature_control: true
+            collapsible_controls: true
+            icon: mdi:heat-wave
+            name: Salle de bain
+            tap_action:
+              action: more-info
+            visibility:
+              - condition: state
+                entity: input_select.hvac_mode
+                state_not: ete
+          - type: custom:mushroom-climate-card
+            entity: climate.thermostat_chambre
+            fill_container: false
+            layout: horizontal
+            primary_info: name
+            hvac_modes: []
+            show_temperature_control: true
+            collapsible_controls: true
+            icon: mdi:heat-wave
+            name: Chambre
+            tap_action:
+              action: more-info
+            visibility:
+              - condition: state
+                entity: input_select.hvac_mode
+                state_not: ete
+          - type: custom:mushroom-climate-card
+            entity: climate.thermostat_bureau
+            fill_container: false
+            layout: horizontal
+            primary_info: name
+            hvac_modes: []
+            show_temperature_control: true
+            collapsible_controls: true
+            icon: mdi:heat-wave
+            name: Bureau
+            tap_action:
+              action: more-info
+            visibility:
+              - condition: state
+                entity: input_select.hvac_mode
+                state_not: ete
+          - type: custom:mushroom-climate-card
+            entity: climate.thermostat_salle_de_serveurs
+            fill_container: false
+            layout: horizontal
+            primary_info: name
+            hvac_modes: []
+            show_temperature_control: true
+            collapsible_controls: true
+            icon: mdi:heat-wave
+            name: Salle des serveurs
+            tap_action:
+              action: more-info
+            visibility:
+              - condition: state
+                entity: input_select.hvac_mode
+                state_not: ete
+        column_span: 2
+      - type: grid
+        cards:
+          - type: markdown
+            content: |-
+              {% 
+
+              set data = state_attr('sensor.recompenses_hilo','history')[0] 
+
+              %}
+              {% if data is defined %}
+
+                <h2><center>Défis Hilo - Saison  {{data.season}}-{{data.season + 1}}</center></h2>  
+                <ha-alert alert-type="success"><h3>
+                  Nb de défis: {{data.events | count}}<br>
+                  Récompense totale: {{"%.2f" | format(data.totalReward) }}$<br>
+                  Récompense moyenne: {{"%.2f" | format(data.totalReward /(data.events | count)) }}$<br>
+                  Énergie sauvée: {{ (state_attr('sensor.recompenses_hilo', 'history')[0]['totalEnergySavingsWh'] | float / 1000) | round(1, "ceil", default)}} kWh
+                  
+                </h3></ha-alert>      
+                <br>
+
+                <table width=100%>
+                  <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Plage</th>
+                    <th>Alloué</th>
+                    <th>Utilisé</th>
+                    <th>Prime</th>
+                  </tr>  
+
+                  {%- for event in data.events|reverse -%}    
+                    <tr>
+                    <td align=center>{{ "%02i"|format(loop.revindex) }}</td>
+                    <td align=center>{{ event.phases.reduction_start.timestamp() | timestamp_custom('%b %d (%a)') }}</td>
+                    <td align=center>{{ "Matin" if (event.period =="am") else "Soir" }}</td>
+                    <td align=center>{{ "%.1f"|format(event.allowed_kWh) }} kWh</td> 
+                    <td align=center>{{ "%.1f"|format(event.used_kWh) }} kWh</td>      
+                    <td align=center>{{ "%.2f"|format(max(0,event.allowed_kWh - event.used_kWh) * 0.55) }}$</td>
+                    </tr>
+                  {%- endfor -%}
+
+                </table>
+
+              {% else %}
+              aucune donnée disponible
+              {% endif %}
+        visibility:
+          - condition: state
+            entity: sensor.season
+            state: winter
+          - condition: and
+            conditions:
+              - condition: state
+                entity: sensor.defi_hilo
+                state_not: pre_heat
+              - condition: state
+                entity: sensor.defi_hilo
+                state_not: reduction
+              - condition: state
+                entity: sensor.defi_hilo
+                state_not: recovery
+    max_columns: 6
+    dense_section_placement: true
